@@ -21,7 +21,7 @@ export default function StudentDashboard() {
         <div className="flex items-center gap-4">
           <span className="text-xs text-zinc-500 uppercase tracking-widest hidden md:block font-bold">Cuenta Activa</span>
           <div className="p-1 rounded-full border border-emerald-500/40 bg-emerald-500/10">
-            <UserButton afterSignOutUrl="/" />
+            <UserButton />
           </div>
         </div>
       </header>
