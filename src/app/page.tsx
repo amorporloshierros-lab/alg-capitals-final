@@ -34,6 +34,13 @@ export default function LandingPage() {
           <a href="#planes" className="hover:text-emerald-400 transition-colors">Acceder</a>
           <span className="text-neutral-800">|</span>
           <a href={telegramLink} target="_blank" className="text-emerald-500/50 hover:text-emerald-400 transition-colors">Telegram</a>
+          {/* NUEVO BOTÓN PORTAL ALUMNOS */}
+          <Link 
+            href="/dashboard" 
+            className="ml-4 px-5 py-2 bg-emerald-600/10 border border-emerald-500/50 hover:bg-emerald-500 hover:text-black text-emerald-500 transition-all duration-300 rounded-sm"
+          >
+            Portal Alumnos
+          </Link>
         </div>
       </nav>
 
