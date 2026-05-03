@@ -208,31 +208,28 @@ export default async function PortalBiasPage() {
               }}>
                 ▶ Video del bias
               </div>
-              {today.video_url.includes('youtube') || today.video_url.includes('youtu.be') ? (
-                <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden' }}>
-                  <iframe
-                    src={today.video_url.replace('watch?v=', 'embed/')}
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
-                    allowFullScreen
-                  />
-                </div>
+              {/\.(mp4|mov|webm|avi)(\?|$)/i.test(today.video_url) || today.video_url.includes('supabase') ? (
+                <video
+                  controls
+                  controlsList="nodownload"
+                  onContextMenu={e => e.preventDefault()}
+                  style={{ width: '100%', display: 'block', background: '#000', borderRadius: 2 }}
+                  playsInline
+                >
+                  <source src={today.video_url} />
+                  Tu navegador no soporta video.
+                </video>
               ) : (
                 <a
                   href={today.video_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '10px 16px',
-                    background: 'rgba(16,185,129,.08)',
-                    border: '1px solid rgba(16,185,129,.2)',
-                    color: '#10b981',
-                    font: '700 10px/1 var(--font-sans)',
-                    letterSpacing: '.2em',
-                    textTransform: 'uppercase',
-                    textDecoration: 'none',
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    padding: '10px 16px', background: 'rgba(16,185,129,.08)',
+                    border: '1px solid rgba(16,185,129,.2)', color: '#10b981',
+                    font: '700 10px/1 var(--font-sans)', letterSpacing: '.2em',
+                    textTransform: 'uppercase', textDecoration: 'none',
                   }}
                 >
                   ▶ Ver video

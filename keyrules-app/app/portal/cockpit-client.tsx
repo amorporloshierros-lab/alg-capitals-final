@@ -319,23 +319,38 @@ export default function CockpitClient({ userName, userInitials, plan, isAdmin=fa
           >
             {todayBias ? (
               <div style={{ display:'grid', gridTemplateColumns:'1.2fr 1fr', gap:16 }}>
-                <div style={{ aspectRatio:'16/10', background:'#000', border:'1px solid #171717', position:'relative', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
-                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(16,185,129,.08),transparent 60%)' }}/>
+                <div style={{ background:'#000', border:'1px solid #171717', position:'relative', overflow:'hidden', minHeight:140 }}>
+                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(16,185,129,.08),transparent 60%)', pointerEvents:'none', zIndex:1 }}/>
                   {todayBias.video_url ? (
-                    <a href={todayBias.video_url} target="_blank" rel="noopener noreferrer"
-                      style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10, textDecoration:'none' }}>
-                      <div style={{ width:52, height:52, borderRadius:'50%', border:'2px solid #10b981', background:'rgba(16,185,129,.15)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 0 24px rgba(16,185,129,.4)' }}>
-                        <div style={{ width:0, height:0, borderTop:'9px solid transparent', borderBottom:'9px solid transparent', borderLeft:'14px solid #10b981', marginLeft:4 }}/>
-                      </div>
-                      <div style={{ font:'900 italic 8px/1 var(--font-sans)', letterSpacing:'.3em', color:'#10b981', textTransform:'uppercase' }}>▶ Ver Bias Video</div>
-                    </a>
+                    // Video directo (Supabase Storage) → player nativo
+                    /\.(mp4|mov|webm|avi)(\?|$)/i.test(todayBias.video_url) || todayBias.video_url.includes('supabase') ? (
+                      <video
+                        controls
+                        controlsList="nodownload"
+                        onContextMenu={e => e.preventDefault()}
+                        style={{ width:'100%', display:'block', maxHeight:260 }}
+                        playsInline
+                      >
+                        <source src={todayBias.video_url}/>
+                        Tu navegador no soporta video.
+                      </video>
+                    ) : (
+                      // YouTube / Loom / link externo → botón
+                      <a href={todayBias.video_url} target="_blank" rel="noopener noreferrer"
+                        style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10, textDecoration:'none', padding:'32px 20px', position:'relative', zIndex:2 }}>
+                        <div style={{ width:52, height:52, borderRadius:'50%', border:'2px solid #10b981', background:'rgba(16,185,129,.15)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 0 24px rgba(16,185,129,.4)' }}>
+                          <div style={{ width:0, height:0, borderTop:'9px solid transparent', borderBottom:'9px solid transparent', borderLeft:'14px solid #10b981', marginLeft:4 }}/>
+                        </div>
+                        <div style={{ font:'900 italic 8px/1 var(--font-sans)', letterSpacing:'.3em', color:'#10b981', textTransform:'uppercase' }}>▶ Ver Bias en Video</div>
+                      </a>
+                    )
                   ) : (
-                    <>
-                      <div style={{ width:52, height:52, borderRadius:'50%', border:'2px solid #10b981', background:'rgba(16,185,129,.15)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 0 24px rgba(16,185,129,.4)', zIndex:2 }}>
-                        <div style={{ width:0, height:0, borderTop:'9px solid transparent', borderBottom:'9px solid transparent', borderLeft:'14px solid #10b981', marginLeft:4 }}/>
+                    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'32px 20px', gap:8, position:'relative', zIndex:2 }}>
+                      <div style={{ width:52, height:52, borderRadius:'50%', border:'2px solid rgba(16,185,129,.3)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        <div style={{ width:0, height:0, borderTop:'9px solid transparent', borderBottom:'9px solid transparent', borderLeft:'14px solid rgba(16,185,129,.3)', marginLeft:4 }}/>
                       </div>
-                      <div style={{ position:'absolute', bottom:8, left:10, font:'900 italic 7px/1 var(--font-sans)', letterSpacing:'.3em', color:'#10b981', textTransform:'uppercase' }}>◉ Daily Bias</div>
-                    </>
+                      <div style={{ font:'900 italic 7px/1 var(--font-sans)', letterSpacing:'.3em', color:'#404040', textTransform:'uppercase' }}>Sin video hoy</div>
+                    </div>
                   )}
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
