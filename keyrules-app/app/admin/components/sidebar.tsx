@@ -4,14 +4,15 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 
 const SECTIONS = [
-  { href: '/admin',          label: 'Overview',        icon: '◉' },
-  { href: '/admin/bias',     label: 'Bias Diario',     icon: '▲' },
-  { href: '/admin/signals',  label: 'Señales',         icon: '◆' },
-  { href: '/admin/meet',     label: 'Próximo Meet',    icon: '◎' },
-  { href: '/admin/classes',  label: 'Clases & Replays',icon: '▶' },
-  { href: '/admin/students', label: 'Alumnos',         icon: '●' },
-  { href: '/admin/payments', label: 'Pagos',           icon: '$' },
-  { href: '/admin/plans',    label: 'Planes',          icon: '◇' },
+  { href: '/admin',           label: 'Overview',        icon: '◉' },
+  { href: '/admin/bias',      label: 'Bias Diario',     icon: '▲' },
+  { href: '/admin/signals',   label: 'Señales',         icon: '◆' },
+  { href: '/admin/meet',      label: 'Próximo Meet',    icon: '◎' },
+  { href: '/admin/classes',   label: 'Clases & Replays',icon: '▶' },
+  { href: '/admin/students',  label: 'Alumnos',         icon: '●' },
+  { href: '/admin/licenses',  label: 'Licencias Oracle',icon: '⬢' },
+  { href: '/admin/payments',  label: 'Pagos',           icon: '$' },
+  { href: '/admin/plans',     label: 'Planes',          icon: '◇' },
 ]
 
 export default function AdminSidebar() {
