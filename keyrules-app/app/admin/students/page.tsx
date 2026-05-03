@@ -22,7 +22,7 @@ export default async function AdminStudentsPage() {
           <thead>
             <tr style={{ borderBottom:'1px solid rgba(16,185,129,.15)' }}>
               {['Nombre','Email','Rol','Plan','Vence','Registrado'].map(h => (
-                <th key={h} style={{ padding:'12px 16px', text:'left', font:'900 italic 8px/1 var(--font-sans)', letterSpacing:'.3em', textTransform:'uppercase', color:'#10b981', whiteSpace:'nowrap', textAlign:'left' }}>{h}</th>
+                <th key={h} style={{ padding:'12px 16px', font:'900 italic 8px/1 var(--font-sans)', letterSpacing:'.3em', textTransform:'uppercase', color:'#10b981', whiteSpace:'nowrap', textAlign:'left' }}>{h}</th>
               ))}
             </tr>
           </thead>
