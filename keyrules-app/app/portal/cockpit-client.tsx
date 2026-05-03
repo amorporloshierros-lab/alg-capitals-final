@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 
 // ── TYPES ──────────────────────────────────────────────────────────────────
 interface Trade { result_pct: number|null; pair: string|null; direction: string|null; notes: string|null; taken_at: string }
@@ -28,7 +29,6 @@ const INIT_TICKS = [
 ]
 
 const BC: Record<string,string> = { alcista:'#10b981',bajista:'#ef4444',neutral:'#fbbf24',range:'#a3a3a3',LONG:'#10b981',SHORT:'#ef4444',BULL:'#10b981',BEAR:'#ef4444',NEUTRAL:'#fbbf24' }
-const BL: Record<string,string> = { alcista:'▲ ALCISTA',bajista:'▼ BAJISTA',neutral:'◇ NEUTRAL',range:'◎ RANGE' }
 const f2 = (n: number) => String(n).padStart(2,'0')
 
 function getSession(h: number) {
@@ -89,11 +89,14 @@ function Stat({ label, value, prefix='', suffix='', color='#f5f5f5', big=false }
 
 // ── MAIN ──────────────────────────────────────────────────────────────────
 export default function CockpitClient({ userName, userInitials, plan, stats, trades, todayBias, nextMeet, signals, academyPct, completedClasses, totalClasses }: Props) {
+  const router = useRouter()
   const [time, setTime] = useState(new Date())
   const [ticks, setTicks] = useState(INIT_TICKS)
   const [equity, setEquity] = useState<number[]>(() => genEquity())
   const [countdown, setCountdown] = useState('')
   const [risk, setRisk] = useState({ balance:100000, riskPct:0.5, stop:42, rr:3 })
+  const [refreshing, setRefreshing] = useState(false)
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
   const [checklist, setChecklist] = useState([
     { label:'HTF bias definido (D1/H4)', done:true },
     { label:'Zona PD premium/discount',  done:true },
@@ -105,11 +108,13 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
     { label:'R:R mínimo 1:2.5',         done:false },
   ])
 
+  // ── Clock ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(t)
   }, [])
 
+  // ── Ticker drift ──────────────────────────────────────────────────────
   useEffect(() => {
     const t = setInterval(() => {
       setTicks(prev => prev.map(tk => {
@@ -122,6 +127,7 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
     return () => clearInterval(t)
   }, [])
 
+  // ── Equity animation ──────────────────────────────────────────────────
   useEffect(() => {
     const t = setInterval(() => {
       setEquity(prev => {
@@ -132,6 +138,7 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
     return () => clearInterval(t)
   }, [])
 
+  // ── Meet countdown ────────────────────────────────────────────────────
   const updateCountdown = useCallback(() => {
     if (!nextMeet?.date_iso) return
     const diff = new Date(nextMeet.date_iso).getTime() - Date.now()
@@ -142,6 +149,21 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
 
   useEffect(() => { updateCountdown(); const t=setInterval(updateCountdown,60000); return ()=>clearInterval(t) }, [updateCountdown])
 
+  // ── AUTO-REFRESH: recargar datos del servidor cada 30s ─────────────────
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true)
+    router.refresh()
+    await new Promise(r => setTimeout(r, 1200))
+    setLastRefresh(new Date())
+    setRefreshing(false)
+  }, [router])
+
+  useEffect(() => {
+    const interval = setInterval(handleRefresh, 30_000)
+    return () => clearInterval(interval)
+  }, [handleRefresh])
+
+  // ── Derived values ─────────────────────────────────────────────────────
   const session = getSession(time.getUTCHours())
   const bal = equity[equity.length-1]
   const pnlAbs = bal-equity[0]
@@ -158,6 +180,8 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
   const targetUsd = (riskUsd*risk.rr).toFixed(0)
   const doneCount = checklist.filter(i=>i.done).length
   const clReady = doneCount>=6
+
+  const lastRefreshStr = `${f2(lastRefresh.getHours())}:${f2(lastRefresh.getMinutes())}:${f2(lastRefresh.getSeconds())}`
 
   const CHALLENGES = [
     { firm:'FTMO', acct:'250K', stage:'Stage 2', target:5, current:3.82, dd:1.2, maxDd:10, dailyDd:5, days:14, trades:47, wr:62, funded:false },
@@ -179,7 +203,7 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
       {/* HEADER */}
       <header style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 24px', background:'rgba(10,10,10,.95)', borderBottom:'1px solid #171717', borderLeft:'3px solid #10b981' }}>
         <div style={{ display:'flex', alignItems:'center', gap:20 }}>
-          <a href="/" style={{ font:'900 8px/1 var(--font-sans)', letterSpacing:'.3em', color:'#525252', textTransform:'uppercase', padding:'6px 12px', border:'1px solid #262626', textDecoration:'none' }}>← SALIR</a>
+          <a href="/api/logout" style={{ font:'900 8px/1 var(--font-sans)', letterSpacing:'.3em', color:'#525252', textTransform:'uppercase', padding:'6px 12px', border:'1px solid #262626', textDecoration:'none' }}>← SALIR</a>
           <div>
             <div style={{ font:'900 italic 7px/1 var(--font-sans)', letterSpacing:'.4em', color:'#10b981', textTransform:'uppercase', marginBottom:4 }}>⬢ Elite Program · Terminal v4.0</div>
             <h1 style={{ font:'900 italic 20px/1 var(--font-sans)', color:'#fff', margin:0, textTransform:'uppercase' }}>
@@ -188,6 +212,16 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
           </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:20 }}>
+          {/* Live refresh indicator */}
+          <div style={{ textAlign:'right' }}>
+            <div style={{ font:'700 7px/1 var(--font-mono)', letterSpacing:'.3em', color:'#525252', textTransform:'uppercase', marginBottom:3 }}>
+              {refreshing ? '↻ actualizando...' : `sync ${lastRefreshStr}`}
+            </div>
+            <button onClick={handleRefresh} disabled={refreshing} style={{ background:'transparent', border:'1px solid #262626', color:refreshing?'#525252':'#10b981', font:'900 italic 7px/1 var(--font-sans)', letterSpacing:'.25em', textTransform:'uppercase', padding:'4px 10px', cursor:'pointer' }}>
+              {refreshing ? '...' : '↻ REFRESH'}
+            </button>
+          </div>
+          <div style={{ width:1, height:30, background:'#262626' }}/>
           <div style={{ textAlign:'right' }}>
             <div style={{ font:'700 7px/1 var(--font-mono)', letterSpacing:'.3em', color:'#525252', textTransform:'uppercase', marginBottom:3 }}>Sesión activa</div>
             <div style={{ font:'900 italic 12px/1 var(--font-sans)', color:session.color, letterSpacing:'.15em', textTransform:'uppercase' }}>{session.name}</div>
@@ -198,8 +232,14 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
             <div style={{ font:'700 14px/1 var(--font-mono)', color:'#d4d4d4' }}>{f2(time.getUTCHours())}:{f2(time.getUTCMinutes())}:{f2(time.getUTCSeconds())}</div>
           </div>
           <div style={{ width:1, height:30, background:'#262626' }}/>
-          <Pill status="live">Oracle Conectado</Pill>
-          <div style={{ width:36, height:36, background:'#10b981', color:'#000', display:'flex', alignItems:'center', justifyContent:'center', font:'900 italic 13px/1 var(--font-sans)', boxShadow:'0 0 14px rgba(16,185,129,.4)' }}>{userInitials}</div>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{ textAlign:'right' }}>
+              <div style={{ font:'700 7px/1 var(--font-mono)', letterSpacing:'.3em', color:'#525252', textTransform:'uppercase', marginBottom:3 }}>Plan</div>
+              <div style={{ font:'900 italic 11px/1 var(--font-sans)', color:'#10b981', letterSpacing:'.1em', textTransform:'uppercase' }}>{plan}</div>
+            </div>
+            <Pill status="live">Oracle Conectado</Pill>
+            <div style={{ width:36, height:36, background:'#10b981', color:'#000', display:'flex', alignItems:'center', justifyContent:'center', font:'900 italic 13px/1 var(--font-sans)', boxShadow:'0 0 14px rgba(16,185,129,.4)' }}>{userInitials}</div>
+          </div>
         </div>
       </header>
 
@@ -254,14 +294,29 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
           </Panel>
 
           {/* BIAS */}
-          <Panel eyebrow={`Daily Bias · ${new Date().toLocaleDateString('es-AR',{day:'numeric',month:'short',year:'numeric'})}`} title={todayBias?`Proyección Institucional · ${todayBias.pair}`:'Sin Bias Publicado'} glow={!!todayBias}
-            action={<a href="/portal/bias" style={{ font:'900 italic 8px/1 var(--font-sans)', letterSpacing:'.25em', color:'#10b981', textTransform:'uppercase', textDecoration:'none' }}>Historial →</a>}>
+          <Panel
+            eyebrow={`Daily Bias · ${new Date().toLocaleDateString('es-AR',{day:'numeric',month:'short',year:'numeric'})}`}
+            title={todayBias ? `Proyección Institucional · ${todayBias.pair}` : 'Sin Bias Publicado'}
+            glow={!!todayBias}
+            action={
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <button onClick={handleRefresh} disabled={refreshing} style={{ background:'rgba(16,185,129,.08)', border:'1px solid rgba(16,185,129,.2)', color:'#10b981', font:'900 italic 7px/1 var(--font-sans)', letterSpacing:'.25em', textTransform:'uppercase', padding:'4px 10px', cursor:'pointer' }}>
+                  {refreshing ? '...' : '↻'}
+                </button>
+                <a href="/portal/bias" style={{ font:'900 italic 8px/1 var(--font-sans)', letterSpacing:'.25em', color:'#10b981', textTransform:'uppercase', textDecoration:'none' }}>Historial →</a>
+              </div>
+            }
+          >
             {todayBias ? (
               <div style={{ display:'grid', gridTemplateColumns:'1.2fr 1fr', gap:16 }}>
                 <div style={{ aspectRatio:'16/10', background:'#000', border:'1px solid #171717', position:'relative', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
                   <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(16,185,129,.08),transparent 60%)' }}/>
                   {todayBias.video_url ? (
-                    <iframe src={todayBias.video_url.replace('watch?v=','embed/')} style={{ position:'absolute', inset:0, width:'100%', height:'100%', border:'none' }} allowFullScreen/>
+                    <iframe
+                      src={todayBias.video_url.includes('youtu') ? todayBias.video_url.replace('watch?v=','embed/').replace('youtu.be/','youtube.com/embed/') : todayBias.video_url}
+                      style={{ position:'absolute', inset:0, width:'100%', height:'100%', border:'none' }}
+                      allowFullScreen
+                    />
                   ) : (
                     <>
                       <div style={{ width:52, height:52, borderRadius:'50%', border:'2px solid #10b981', background:'rgba(16,185,129,.15)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 0 24px rgba(16,185,129,.4)', zIndex:2 }}>
@@ -274,10 +329,16 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
                 <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                   <div>
                     <div style={{ font:'700 7px/1 var(--font-mono)', letterSpacing:'.3em', color:'#525252', textTransform:'uppercase', marginBottom:4 }}>Dirección</div>
-                    <div style={{ font:'900 italic 32px/1 var(--font-sans)', color:BC[todayBias.direction]??'#fff', textShadow:'0 0 16px currentColor', textTransform:'uppercase' }}>
-                      {todayBias.direction==='alcista'?'LONG':todayBias.direction==='bajista'?'SHORT':todayBias.direction.toUpperCase()}
+                    <div style={{ font:'900 italic 36px/1 var(--font-sans)', color:BC[todayBias.direction]??'#fff', textShadow:'0 0 20px currentColor', textTransform:'uppercase' }}>
+                      {todayBias.direction==='alcista'?'▲ LONG':todayBias.direction==='bajista'?'▼ SHORT':todayBias.direction.toUpperCase()}
                     </div>
                   </div>
+                  {todayBias.pair && (
+                    <div style={{ padding:'6px 10px', background:'rgba(16,185,129,.04)', borderLeft:'3px solid rgba(16,185,129,.4)' }}>
+                      <div style={{ font:'700 7px/1 var(--font-mono)', color:'#737373', letterSpacing:'.3em', textTransform:'uppercase', marginBottom:3 }}>Par</div>
+                      <div style={{ font:'900 italic 14px/1 var(--font-sans)', color:'#f5f5f5' }}>{todayBias.pair}</div>
+                    </div>
+                  )}
                   {todayBias.session && (
                     <div style={{ padding:'8px 10px', background:'rgba(16,185,129,.04)', borderLeft:'3px solid #10b981' }}>
                       <div style={{ font:'700 7px/1 var(--font-mono)', color:'#737373', letterSpacing:'.3em', textTransform:'uppercase', marginBottom:3 }}>Kill Zone</div>
@@ -285,30 +346,39 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
                     </div>
                   )}
                   {todayBias.analysis_md && (
-                    <div style={{ padding:'8px 10px', background:'rgba(16,185,129,.04)', borderTop:'1px solid rgba(16,185,129,.15)' }}>
+                    <div style={{ padding:'8px 10px', background:'rgba(16,185,129,.04)', borderTop:'1px solid rgba(16,185,129,.15)', flex:1, overflow:'hidden' }}>
                       <p style={{ margin:0, font:'400 italic 11px/1.5 var(--font-sans)', color:'rgba(209,250,229,.8)' }}>
-                        {todayBias.analysis_md.slice(0,200)}{todayBias.analysis_md.length>200?'...':''}
+                        {todayBias.analysis_md.slice(0,220)}{todayBias.analysis_md.length>220?'...':''}
                       </p>
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div style={{ padding:'24px 0', textAlign:'center', color:'#404040', font:'400 12px/1 var(--font-sans)' }}>El bias de hoy aún no fue publicado</div>
+              <div style={{ padding:'32px 0', textAlign:'center' }}>
+                <div style={{ font:'900 italic 32px/1 var(--font-sans)', color:'#262626', marginBottom:10 }}>▲</div>
+                <div style={{ font:'700 11px/1 var(--font-sans)', color:'#404040', marginBottom:8 }}>El bias de hoy aún no fue publicado</div>
+                <div style={{ font:'400 9px/1 var(--font-mono)', color:'#525252', letterSpacing:'.2em' }}>Auto-refresh · cada 30 segundos</div>
+              </div>
             )}
           </Panel>
 
           {/* JOURNAL + CHECKLIST */}
           <div style={{ display:'grid', gridTemplateColumns:'1.3fr 1fr', gap:16 }}>
             <Panel eyebrow="Trade Journal · Auto-sync" title="Operaciones Recientes"
-              action={trades.filter(t=>(t.result_pct??0)>0).length>0?<Pill status="live">{trades.filter(t=>(t.result_pct??0)>0).length}/{trades.length} W</Pill>:undefined}>
+              action={
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  {trades.filter(t=>(t.result_pct??0)>0).length>0 && <Pill status="live">{trades.filter(t=>(t.result_pct??0)>0).length}/{trades.length} W</Pill>}
+                  <a href="/portal/journal" style={{ font:'900 italic 7px/1 var(--font-sans)', letterSpacing:'.2em', color:'#10b981', textTransform:'uppercase', textDecoration:'none' }}>+ Agregar</a>
+                </div>
+              }>
               {trades.length>0 ? (
                 <div style={{ display:'flex', flexDirection:'column', gap:4, maxHeight:280, overflowY:'auto' }}>
                   {trades.map((t,i) => {
                     const win=(t.result_pct??0)>0, be=t.result_pct===0||t.result_pct===null
                     const col=be?'#a3a3a3':win?'#10b981':'#ef4444'
                     return (
-                      <div key={i} style={{ display:'grid', gridTemplateColumns:'64px 64px 1fr 60px', gap:8, alignItems:'center', padding:'8px 10px', background:'rgba(5,5,5,.3)', border:'1px solid #171717' }}>
+                      <div key={i} style={{ display:'grid', gridTemplateColumns:'64px 54px 1fr 60px', gap:8, alignItems:'center', padding:'8px 10px', background:'rgba(5,5,5,.3)', border:'1px solid #171717' }}>
                         <span style={{ font:'900 italic 10px/1 var(--font-sans)', color:'#fff' }}>{t.pair??'—'}</span>
                         <span style={{ font:'900 italic 7px/1 var(--font-sans)', letterSpacing:'.2em', padding:'2px 5px', color:t.direction==='LONG'?'#10b981':'#ef4444', background:t.direction==='LONG'?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)', border:`1px solid ${t.direction==='LONG'?'rgba(16,185,129,.3)':'rgba(239,68,68,.3)'}`, textAlign:'center' }}>{t.direction??'—'}</span>
                         <span style={{ font:'400 italic 10px/1.3 var(--font-sans)', color:'#a3a3a3', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.notes??'—'}</span>
@@ -444,25 +514,37 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
               <Stat label="Tamaño" value={lots} suffix=" lots" color="#fff"/>
               <Stat label="Target" value={targetUsd} prefix="$" color="#10b981"/>
             </div>
+            <div style={{ marginTop:8, font:'400 9px/1.5 var(--font-mono)', color:'#404040', letterSpacing:'.1em' }}>
+              Riesgo por trade = {risk.riskPct}% · Ganancia esperada = ${(riskUsd*risk.rr).toFixed(0)} USD
+            </div>
           </Panel>
 
-          {/* SIGNALS / DISCORD */}
+          {/* SIGNALS */}
           <Panel eyebrow="Señales · Live" title="Feed de Señales"
-            action={<a href="/portal/signals" style={{ font:'900 italic 8px/1 var(--font-sans)', letterSpacing:'.25em', color:'#10b981', textTransform:'uppercase', textDecoration:'none' }}>Ver todas →</a>}>
+            action={
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                {signals.length>0 && <Pill status="live">{signals.length} activas</Pill>}
+                <a href="/portal/signals" style={{ font:'900 italic 8px/1 var(--font-sans)', letterSpacing:'.25em', color:'#10b981', textTransform:'uppercase', textDecoration:'none' }}>Ver todas →</a>
+              </div>
+            }>
             {signals.length>0 ? (
               <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                 {signals.map(s => {
-                  const rr = Math.abs((s.tp-s.entry)/(s.entry-s.sl)).toFixed(1)
+                  const rr = s.entry && s.sl ? Math.abs((s.tp-s.entry)/(s.entry-s.sl)).toFixed(1) : '—'
                   const col = s.direction==='LONG'?'#10b981':'#ef4444'
+                  const statusColor = s.status==='open'?'#10b981':s.status==='closed_win'?'#34d399':s.status==='closed_loss'?'#ef4444':'#f59e0b'
                   return (
-                    <div key={s.id} style={{ padding:'8px 10px', borderLeft:`2px solid ${col}40`, background:'rgba(5,5,5,.4)' }}>
-                      <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:4 }}>
-                        <span style={{ font:'900 italic 10px/1 var(--font-sans)', color:'#fff' }}>{s.pair}</span>
-                        <span style={{ font:'900 italic 7px/1 var(--font-sans)', color:col, letterSpacing:'.2em', padding:'2px 5px', background:`${col}15`, border:`1px solid ${col}30` }}>{s.direction}</span>
+                    <div key={s.id} style={{ padding:'10px 12px', borderLeft:`2px solid ${col}`, background:'rgba(5,5,5,.4)', border:`1px solid #1f1f1f`, borderLeftColor:col, borderLeftWidth:2 }}>
+                      <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:5 }}>
+                        <span style={{ font:'900 italic 11px/1 var(--font-sans)', color:'#fff' }}>{s.pair}</span>
+                        <span style={{ font:'900 italic 7px/1 var(--font-sans)', color:col, letterSpacing:'.2em', padding:'2px 6px', background:`${col}15`, border:`1px solid ${col}30` }}>{s.direction}</span>
                         <span style={{ font:'700 8px/1 var(--font-mono)', color:'#737373', marginLeft:'auto' }}>{rr}R</span>
+                        <span style={{ font:'700 7px/1 var(--font-mono)', color:statusColor, letterSpacing:'.15em', textTransform:'uppercase' }}>{s.status.replace('_',' ')}</span>
                       </div>
-                      <div style={{ font:'400 10px/1.4 var(--font-sans)', color:'#d4d4d4' }}>
-                        Entry {s.entry} · SL {s.sl} · TP {s.tp}
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:6 }}>
+                        <div style={{ font:'700 8px/1 var(--font-mono)', color:'#737373' }}>Entry<br/><span style={{ color:'#d4d4d4' }}>{s.entry}</span></div>
+                        <div style={{ font:'700 8px/1 var(--font-mono)', color:'#737373' }}>SL<br/><span style={{ color:'#ef4444' }}>{s.sl}</span></div>
+                        <div style={{ font:'700 8px/1 var(--font-mono)', color:'#737373' }}>TP<br/><span style={{ color:'#10b981' }}>{s.tp}</span></div>
                       </div>
                     </div>
                   )
@@ -489,6 +571,9 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
 
       <style>{`
         @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
       `}</style>
     </div>
   )
