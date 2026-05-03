@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { requireProfile } from '@/lib/auth'
 import CockpitClient from './cockpit-client'
 
@@ -6,15 +6,24 @@ export const dynamic = 'force-dynamic'
 
 export default async function PortalPage() {
   const profile = await requireProfile()
-  const supabase = await createClient()
+  const supabase = createAdminClient() // admin bypasea RLS para contenido público
 
-  const [{ data: trades }, { data: biasRaw }, { data: meetRaw }, { data: signals }, { data: classProgress }, { data: classes }] = await Promise.all([
+  const [
+    { data: trades },
+    { data: biasRaw },
+    { data: meetRaw },
+    { data: signals },
+    { data: classProgress },
+    { data: classes },
+    { data: licenses },
+  ] = await Promise.all([
     supabase.from('journal_trades').select('result_pct, taken_at, pair, direction, notes').eq('user_id', profile.id).order('taken_at', { ascending: false }).limit(10),
     supabase.from('bias').select('*').not('published_at', 'is', null).order('published_at', { ascending: false }).limit(1),
     supabase.from('meet_config').select('*').eq('active', true).limit(1),
-    supabase.from('signals').select('*').order('posted_at', { ascending: false }).limit(5),
+    supabase.from('signals').select('*').in('status', ['active', 'open']).order('posted_at', { ascending: false }).limit(5),
     supabase.from('class_progress').select('class_id').eq('user_id', profile.id),
     supabase.from('classes').select('id, module').not('published_at', 'is', null),
+    supabase.from('licenses').select('*').eq('user_id', profile.id).eq('active', true),
   ])
 
   const tradeList = trades ?? []
@@ -30,12 +39,14 @@ export default async function PortalPage() {
 
   const name = profile.name ?? profile.email.split('@')[0]
   const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+  const isAdmin = profile.role === 'admin'
 
   return (
     <CockpitClient
       userName={name}
       userInitials={initials}
       plan={profile.plan ?? 'free'}
+      isAdmin={isAdmin}
       stats={{ total, winRate, pnlPct }}
       trades={tradeList as { result_pct: number | null; pair: string | null; direction: string | null; notes: string | null; taken_at: string }[]}
       todayBias={biasRaw?.[0] ?? null}
@@ -44,6 +55,7 @@ export default async function PortalPage() {
       academyPct={academyPct}
       completedClasses={completedClasses}
       totalClasses={totalClasses}
+      licenses={(licenses ?? []) as { id: string; product: string; license_key: string; notes: string | null; expires_at: string | null }[]}
     />
   )
 }

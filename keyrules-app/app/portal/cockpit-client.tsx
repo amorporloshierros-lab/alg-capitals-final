@@ -9,11 +9,26 @@ interface Signal { id: string; pair: string; direction: string; entry: number; s
 interface Bias { pair: string; direction: string; analysis_md: string|null; session: string|null; video_url: string|null }
 interface Meet { title: string|null; date_iso: string|null; url: string|null }
 interface Stats { total: number; winRate: number; pnlPct: number }
+interface License { id: string; product: string; license_key: string; notes: string|null; expires_at: string|null }
+
+const PRODUCT_LABEL: Record<string,string> = {
+  oracle_mt5_full: 'Oracle MT5 · Full',
+  keywick_pro:     'Keywick Pro Indicator',
+  bias_telegram:   'Bias Channel · Telegram',
+  discord_elite:   'Discord Elite Access',
+  libro_keywick:   'Libro KEYWICK · Digital',
+  oracle_lite:     'Oracle MT5 · Lite',
+}
+const PRODUCT_COLOR: Record<string,string> = {
+  oracle_mt5_full:'#10b981', keywick_pro:'#fbbf24', bias_telegram:'#34d399',
+  discord_elite:'#818cf8', libro_keywick:'#f472b6', oracle_lite:'#a3a3a3',
+}
 
 interface Props {
-  userName: string; userInitials: string; plan: string; stats: Stats
+  userName: string; userInitials: string; plan: string; isAdmin?: boolean; stats: Stats
   trades: Trade[]; todayBias: Bias|null; nextMeet: Meet|null
   signals: Signal[]; academyPct: number; completedClasses: number; totalClasses: number
+  licenses?: License[]
 }
 
 // ── INIT TICKS ─────────────────────────────────────────────────────────────
@@ -88,7 +103,7 @@ function Stat({ label, value, prefix='', suffix='', color='#f5f5f5', big=false }
 }
 
 // ── MAIN ──────────────────────────────────────────────────────────────────
-export default function CockpitClient({ userName, userInitials, plan, stats, trades, todayBias, nextMeet, signals, academyPct, completedClasses, totalClasses }: Props) {
+export default function CockpitClient({ userName, userInitials, plan, isAdmin=false, stats, trades, todayBias, nextMeet, signals, academyPct, completedClasses, totalClasses, licenses=[] }: Props) {
   const router = useRouter()
   const [time, setTime] = useState(new Date())
   const [ticks, setTicks] = useState(INIT_TICKS)
@@ -189,14 +204,6 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
     { firm:'FundedNext', acct:'200K', stage:'Funded', target:0, current:4.52, dd:0.8, maxDd:6, dailyDd:3, days:0, trades:18, wr:77, funded:true },
   ]
 
-  const LICENSES = [
-    { name:'Oracle MT5 · Full', key:'ORCL-8492-ALG', exp:'24 Dic 2026', status:'live', glow:true },
-    { name:'Indicador Keywick Pro', key:'KWCK-1177-ELT', exp:'24 Dic 2026', status:'live' },
-    { name:'Bias Channel · Telegram', key:'TG-@keyrules-vip', exp:'Lifetime', status:'live' },
-    { name:'Discord Elite', key:'DSC-elite-2026', exp:'Lifetime', status:'live' },
-    { name:'Libro KEYWICK · Digital', key:'BK-e-0042', exp:'Lifetime', status:'live' },
-  ]
-
   return (
     <div style={{ minHeight:'100vh', background:'#050505', color:'#f5f5f5' }}>
 
@@ -204,6 +211,9 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
       <header style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 24px', background:'rgba(10,10,10,.95)', borderBottom:'1px solid #171717', borderLeft:'3px solid #10b981' }}>
         <div style={{ display:'flex', alignItems:'center', gap:20 }}>
           <a href="/api/logout" style={{ font:'900 8px/1 var(--font-sans)', letterSpacing:'.3em', color:'#525252', textTransform:'uppercase', padding:'6px 12px', border:'1px solid #262626', textDecoration:'none' }}>← SALIR</a>
+          {isAdmin && (
+            <a href="/admin/bias" style={{ font:'900 8px/1 var(--font-sans)', letterSpacing:'.3em', color:'#fbbf24', textTransform:'uppercase', padding:'6px 12px', border:'1px solid rgba(251,191,36,.3)', background:'rgba(251,191,36,.06)', textDecoration:'none' }}>⬢ ADMIN</a>
+          )}
           <div>
             <div style={{ font:'900 italic 7px/1 var(--font-sans)', letterSpacing:'.4em', color:'#10b981', textTransform:'uppercase', marginBottom:4 }}>⬢ Elite Program · Terminal v4.0</div>
             <h1 style={{ font:'900 italic 20px/1 var(--font-sans)', color:'#fff', margin:0, textTransform:'uppercase' }}>
@@ -460,19 +470,31 @@ export default function CockpitClient({ userName, userInitials, plan, stats, tra
           </Panel>
 
           {/* LICENSES */}
-          <Panel eyebrow="Accesos · Activos" title="Licencias & Membresías">
-            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-              {LICENSES.map((l,i) => (
-                <div key={i} style={{ display:'grid', gridTemplateColumns:'12px 1fr auto', gap:10, alignItems:'center', padding:'9px 10px', background:l.glow?'rgba(16,185,129,.04)':'rgba(5,5,5,.4)', border:`1px solid ${l.glow?'rgba(16,185,129,.25)':'#171717'}` }}>
-                  <span style={{ width:7, height:7, background:'#10b981', boxShadow:'0 0 6px #10b981', borderRadius:'50%', display:'inline-block' }}/>
-                  <div>
-                    <div style={{ font:'700 11px/1.2 var(--font-sans)', color:'#fff' }}>{l.name}</div>
-                    <div style={{ font:'400 8px/1 var(--font-mono)', color:'#525252', letterSpacing:'.15em', marginTop:2 }}>{l.key}</div>
-                  </div>
-                  <Pill status={l.status}>Activa</Pill>
-                </div>
-              ))}
-            </div>
+          <Panel eyebrow="Accesos · Activos" title="Licencias & Membresías"
+            action={isAdmin ? <a href="/admin/licenses" style={{ font:'900 italic 7px/1 var(--font-sans)', letterSpacing:'.25em', color:'#fbbf24', textTransform:'uppercase', textDecoration:'none' }}>Gestionar →</a> : undefined}>
+            {licenses.length > 0 ? (
+              <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                {licenses.map((l) => {
+                  const col = PRODUCT_COLOR[l.product] ?? '#10b981'
+                  const expired = l.expires_at && new Date(l.expires_at) < new Date()
+                  return (
+                    <div key={l.id} style={{ display:'grid', gridTemplateColumns:'12px 1fr auto', gap:10, alignItems:'center', padding:'9px 10px', background:`${col}06`, border:`1px solid ${expired?'rgba(239,68,68,.2)':`${col}25`}` }}>
+                      <span style={{ width:7, height:7, background: expired?'#ef4444':col, boxShadow:`0 0 6px ${col}`, borderRadius:'50%', display:'inline-block' }}/>
+                      <div>
+                        <div style={{ font:'700 11px/1.2 var(--font-sans)', color: expired?'#737373':'#fff' }}>{PRODUCT_LABEL[l.product] ?? l.product}</div>
+                        <div style={{ font:'700 9px/1 var(--font-mono)', color:col, letterSpacing:'.1em', marginTop:3 }}>{l.license_key}</div>
+                        {l.expires_at && <div style={{ font:'400 8px/1 var(--font-mono)', color: expired?'#ef4444':'#525252', marginTop:2 }}>Vence {new Date(l.expires_at).toLocaleDateString('es-AR')}</div>}
+                      </div>
+                      <Pill status={expired?'error':'live'}>{expired?'Vencida':'Activa'}</Pill>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div style={{ padding:'20px 0', textAlign:'center', color:'#404040', font:'400 11px/1 var(--font-sans)' }}>
+                Sin licencias asignadas aún
+              </div>
+            )}
           </Panel>
 
           {/* ACADEMY */}
