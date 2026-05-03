@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { createBias, updateBias, deleteBias, togglePublishBias } from '../actions/bias'
 import type { BiasDir, PlanTier } from '@/types/database'
 
@@ -56,6 +56,10 @@ export default function BiasEditor({ initialList }: { initialList: BiasRow[] }) 
   const [videoUrl, setVideoUrl] = useState('')
   const [minPlan, setMinPlan] = useState<PlanTier>('pro')
   const [publish, setPublish] = useState(true)
+  const [videoTab, setVideoTab] = useState<'url'|'upload'>('url')
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   function resetForm() {
     setPair('XAUUSD')
@@ -80,6 +84,41 @@ export default function BiasEditor({ initialList }: { initialList: BiasRow[] }) 
     setPublish(!!b.published_at)
     setFormError(null)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  async function handleVideoUpload(file: File) {
+    setUploading(true)
+    setUploadProgress(10)
+    try {
+      // 1. Pedir URL firmada de upload
+      const res = await fetch('/api/admin/bias/upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: file.name, contentType: file.type }),
+      })
+      const { signedUrl, path } = await res.json()
+      if (!signedUrl) throw new Error('No se pudo obtener URL de upload')
+      setUploadProgress(30)
+
+      // 2. Subir directo a Supabase Storage
+      const uploadRes = await fetch(signedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type },
+      })
+      if (!uploadRes.ok) throw new Error('Error al subir el video')
+      setUploadProgress(90)
+
+      // 3. Guardar el path en el campo video_url (prefijado con storage:// para distinguirlo)
+      setVideoUrl(`storage://${path}`)
+      setUploadProgress(100)
+      showSuccess(`Video subido: ${file.name}`)
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : 'Error al subir video')
+    } finally {
+      setUploading(false)
+      setTimeout(() => setUploadProgress(0), 1500)
+    }
   }
 
   function showSuccess(msg: string) {
@@ -273,16 +312,52 @@ export default function BiasEditor({ initialList }: { initialList: BiasRow[] }) 
             />
           </div>
 
-          {/* Video URL */}
+          {/* Video */}
           <div>
-            <label style={fieldLabel}>Video URL (opcional)</label>
-            <input
-              type="url"
-              value={videoUrl}
-              onChange={e => setVideoUrl(e.target.value)}
-              placeholder="https://... (YouTube, Loom, etc.)"
-              style={inputStyle}
-            />
+            <label style={fieldLabel}>Video del Bias (opcional)</label>
+            {/* Tab switcher */}
+            <div style={{ display:'flex', gap:0, marginBottom:10, border:'1px solid #262626' }}>
+              {(['url','upload'] as const).map(tab => (
+                <button key={tab} type="button" onClick={() => setVideoTab(tab)}
+                  style={{ flex:1, padding:'8px 0', background: videoTab===tab ? 'rgba(16,185,129,.12)':'transparent', color: videoTab===tab ? '#10b981':'#525252', border:'none', borderRight: tab==='url' ? '1px solid #262626':'none', font:'700 9px/1 var(--font-sans)', letterSpacing:'.2em', textTransform:'uppercase', cursor:'pointer' }}>
+                  {tab === 'url' ? '🔗 Link externo' : '⬆ Subir video'}
+                </button>
+              ))}
+            </div>
+
+            {videoTab === 'url' ? (
+              <input
+                type="url"
+                value={videoUrl.startsWith('storage://') ? '' : videoUrl}
+                onChange={e => setVideoUrl(e.target.value)}
+                placeholder="https://loom.com/... o YouTube..."
+                style={inputStyle}
+              />
+            ) : (
+              <div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="video/*,.mp4,.mov,.webm"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleVideoUpload(f) }}
+                  style={{ display:'none' }}
+                />
+                <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
+                  style={{ width:'100%', padding:'16px', background:'rgba(16,185,129,.04)', border:'1px dashed rgba(16,185,129,.25)', color: uploading?'#525252':'#10b981', font:'700 10px/1 var(--font-sans)', letterSpacing:'.2em', textTransform:'uppercase', cursor: uploading?'not-allowed':'pointer' }}>
+                  {uploading ? `Subiendo... ${uploadProgress}%` : videoUrl.startsWith('storage://') ? '✓ Video subido — click para reemplazar' : '+ Seleccionar video (.mp4, .mov)'}
+                </button>
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <div style={{ marginTop:6, height:3, background:'#1a1a1a' }}>
+                    <div style={{ height:'100%', width:`${uploadProgress}%`, background:'#10b981', transition:'width .3s' }}/>
+                  </div>
+                )}
+                {videoUrl.startsWith('storage://') && (
+                  <div style={{ marginTop:6, font:'400 9px/1 var(--font-mono)', color:'#10b981', letterSpacing:'.1em' }}>
+                    ✓ {videoUrl.replace('storage://','')} — almacenado de forma privada
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Plan mínimo */}

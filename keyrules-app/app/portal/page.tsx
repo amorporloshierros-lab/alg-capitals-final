@@ -37,6 +37,16 @@ export default async function PortalPage() {
   const completedClasses = (classes ?? []).filter((c: { id: string }) => completedIds.has(c.id)).length
   const academyPct = totalClasses > 0 ? Math.round(completedClasses / totalClasses * 100) : 0
 
+  // Generar URL firmada si el video está en Storage privado
+  const rawBias = biasRaw?.[0] ?? null
+  if (rawBias?.video_url?.startsWith('storage://')) {
+    const storagePath = rawBias.video_url.replace('storage://', '')
+    const { data: signed } = await supabase.storage
+      .from('bias-videos')
+      .createSignedUrl(storagePath, 3600) // expira en 1 hora
+    if (signed?.signedUrl) rawBias.video_url = signed.signedUrl
+  }
+
   const name = profile.name ?? profile.email.split('@')[0]
   const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
   const isAdmin = profile.role === 'admin'
@@ -49,7 +59,7 @@ export default async function PortalPage() {
       isAdmin={isAdmin}
       stats={{ total, winRate, pnlPct }}
       trades={tradeList as { result_pct: number | null; pair: string | null; direction: string | null; notes: string | null; taken_at: string }[]}
-      todayBias={biasRaw?.[0] ?? null}
+      todayBias={rawBias}
       nextMeet={meetRaw?.[0] ?? null}
       signals={(signals ?? []) as { id: string; pair: string; direction: string; entry: number; sl: number; tp: number; status: string; posted_at: string }[]}
       academyPct={academyPct}
