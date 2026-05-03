@@ -322,11 +322,13 @@ export default function CockpitClient({ userName, userInitials, plan, isAdmin=fa
                 <div style={{ aspectRatio:'16/10', background:'#000', border:'1px solid #171717', position:'relative', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
                   <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(16,185,129,.08),transparent 60%)' }}/>
                   {todayBias.video_url ? (
-                    <iframe
-                      src={todayBias.video_url.includes('youtu') ? todayBias.video_url.replace('watch?v=','embed/').replace('youtu.be/','youtube.com/embed/') : todayBias.video_url}
-                      style={{ position:'absolute', inset:0, width:'100%', height:'100%', border:'none' }}
-                      allowFullScreen
-                    />
+                    <a href={todayBias.video_url} target="_blank" rel="noopener noreferrer"
+                      style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10, textDecoration:'none' }}>
+                      <div style={{ width:52, height:52, borderRadius:'50%', border:'2px solid #10b981', background:'rgba(16,185,129,.15)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 0 24px rgba(16,185,129,.4)' }}>
+                        <div style={{ width:0, height:0, borderTop:'9px solid transparent', borderBottom:'9px solid transparent', borderLeft:'14px solid #10b981', marginLeft:4 }}/>
+                      </div>
+                      <div style={{ font:'900 italic 8px/1 var(--font-sans)', letterSpacing:'.3em', color:'#10b981', textTransform:'uppercase' }}>▶ Ver Bias Video</div>
+                    </a>
                   ) : (
                     <>
                       <div style={{ width:52, height:52, borderRadius:'50%', border:'2px solid #10b981', background:'rgba(16,185,129,.15)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 0 24px rgba(16,185,129,.4)', zIndex:2 }}>
