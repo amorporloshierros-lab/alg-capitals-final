@@ -71,4 +71,11 @@ export async function deleteBias(id: string) {
 export async function togglePublishBias(id: string, publish: boolean) {
   await requireAdmin()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  con
+  const supabase = createAdminClient() as any
+  const { error } = await supabase.from('bias').update({
+    published_at: publish ? new Date().toISOString() : null,
+  }).eq('id', id)
+  if (error) throw new Error(error.message)
+  revalidatePath('/admin/bias')
+  revalidatePath('/portal/bias')
+}

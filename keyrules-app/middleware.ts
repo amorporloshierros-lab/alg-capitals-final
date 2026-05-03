@@ -48,4 +48,20 @@ export async function middleware(request: NextRequest) {
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
-    const { data: profile } = await adminC
+    const { data: profile } = await adminClient
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.role !== 'admin') {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+  }
+
+  return response
+}
+
+export const config = {
+  matcher: ['/portal/:path*', '/admin/:path*'],
+}
