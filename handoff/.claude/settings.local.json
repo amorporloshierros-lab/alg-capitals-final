@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --version)",
+      "Read(//c/Users/amorp/OneDrive/Desktop/presupuestador/**)",
+      "PowerShell(pnpm --version)",
+      "PowerShell(npm --version)",
+      "PowerShell(corepack --version 2>&1)"
+    ]
+  }
+}

@@ -17,7 +17,8 @@ export interface BiasFormData {
 
 export async function createBias(data: BiasFormData) {
   const admin = await requireAdmin()
-  const supabase = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createAdminClient() as any
 
   const { error } = await supabase.from('bias').insert({
     pair: data.pair.toUpperCase(),
@@ -37,7 +38,8 @@ export async function createBias(data: BiasFormData) {
 
 export async function updateBias(id: string, data: Partial<BiasFormData>) {
   await requireAdmin()
-  const supabase = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createAdminClient() as any
 
   const { error } = await supabase.from('bias').update({
     ...(data.pair      !== undefined && { pair: data.pair.toUpperCase() }),
@@ -58,7 +60,8 @@ export async function updateBias(id: string, data: Partial<BiasFormData>) {
 
 export async function deleteBias(id: string) {
   await requireAdmin()
-  const supabase = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createAdminClient() as any
   const { error } = await supabase.from('bias').delete().eq('id', id)
   if (error) throw new Error(error.message)
   revalidatePath('/admin/bias')
@@ -67,11 +70,5 @@ export async function deleteBias(id: string) {
 
 export async function togglePublishBias(id: string, publish: boolean) {
   await requireAdmin()
-  const supabase = createAdminClient()
-  const { error } = await supabase.from('bias').update({
-    published_at: publish ? new Date().toISOString() : null,
-  }).eq('id', id)
-  if (error) throw new Error(error.message)
-  revalidatePath('/admin/bias')
-  revalidatePath('/portal/bias')
-}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  con

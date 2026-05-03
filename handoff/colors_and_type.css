@@ -1,0 +1,314 @@
+/* ============================================================
+   KEYRULES × ALG CAPITALS — Design Tokens
+   Dark, institutional, emerald-accented quant trading brand.
+   ============================================================ */
+
+/* Webfonts (Geist family, shipped via next/font in source; loaded here
+   from Google Fonts as cross-app fallback) */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap');
+
+:root {
+  /* ------------------------------------------------------------
+     COLORS — Core
+     Base is near-black with a single accent: emerald 500.
+     Anything warm (amber) is a very rare secondary for the
+     "slow EMA" line on charts only.
+     ------------------------------------------------------------ */
+
+  /* Backgrounds */
+  --bg-void:        #050505; /* primary page background (not pure black) */
+  --bg-black:       #000000; /* footer / deep panels */
+  --bg-panel:       #0a0a0a; /* neutral-950 ish */
+  --bg-card:        rgba(23, 23, 23, 0.40);   /* neutral-900 / 40 */
+  --bg-card-strong: rgba(23, 23, 23, 0.60);   /* neutral-900 / 60 */
+  --bg-card-faint:  rgba(23, 23, 23, 0.10);   /* neutral-900 / 10 */
+  --bg-emerald-faint: rgba(16, 185, 129, 0.05); /* chips / badges */
+
+  /* Foregrounds (neutral ladder) */
+  --fg-1: #ffffff;            /* pure white — headlines */
+  --fg-2: #e2e8f0;            /* slate-200 — body default */
+  --fg-3: #d4d4d4;            /* neutral-300 — emphasized body */
+  --fg-4: #a3a3a3;            /* neutral-400 — secondary body */
+  --fg-5: #737373;            /* neutral-500 — labels, nav off-state */
+  --fg-6: #525252;            /* neutral-600 — muted */
+  --fg-7: #404040;            /* neutral-700 — legal text */
+  --fg-8: #262626;            /* neutral-800 — deep muted */
+  --fg-9: #171717;            /* neutral-900 — borders */
+
+  /* Emerald — the ONE accent */
+  --emerald-300: #6ee7b7;
+  --emerald-400: #34d399; /* hover brighten */
+  --emerald-500: #10b981; /* primary accent */
+  --emerald-600: #059669; /* pressed / plan CTA */
+  --emerald-700: #047857;
+  --emerald-900: #064e3b; /* deep gradient stop */
+
+  /* Alpha variants of emerald used for glows, chips, borders */
+  --emerald-500-a05: rgba(16, 185, 129, 0.05);
+  --emerald-500-a10: rgba(16, 185, 129, 0.10);
+  --emerald-500-a20: rgba(16, 185, 129, 0.20);
+  --emerald-500-a30: rgba(16, 185, 129, 0.30);
+  --emerald-500-a40: rgba(16, 185, 129, 0.40);
+  --emerald-500-a50: rgba(16, 185, 129, 0.50);
+
+  /* Secondary accent (rare — slow EMA on charts, gold key in logo) */
+  --amber-500: #f59e0b;
+
+  /* Borders */
+  --border-hairline: #171717;             /* neutral-900 */
+  --border-subtle:   rgba(23, 23, 23, 0.5);
+  --border-emerald:  rgba(16, 185, 129, 0.20);
+  --border-emerald-strong: rgba(16, 185, 129, 0.50);
+
+  /* Semantic */
+  --bull: var(--emerald-500);
+  --bear: #ef4444;
+  --warning: var(--amber-500);
+
+  /* ------------------------------------------------------------
+     SHADOWS & GLOWS
+     Emerald halos are the signature effect.
+     ------------------------------------------------------------ */
+  --glow-sm:   0 0 20px rgba(16, 185, 129, 0.10);
+  --glow-md:   0 0 30px rgba(16, 185, 129, 0.20);
+  --glow-lg:   0 0 60px rgba(16, 185, 129, 0.30);
+  --glow-xl:   0 0 100px rgba(16, 185, 129, 0.25);
+  --glow-logo: 0 0 25px rgba(16, 185, 129, 0.35);
+  --glow-text: 0 0 15px rgba(16, 185, 129, 0.35);
+
+  --shadow-inset-emerald: inset 0 0 40px rgba(16, 185, 129, 0.03);
+
+  /* ------------------------------------------------------------
+     TYPOGRAPHY
+     Three roles:
+       - Display  → Geist, black 900, italic, UPPERCASE, tight.
+       - Body     → Geist, 400–700.
+       - Mono     → Geist Mono, uppercase, wide tracking. Used for
+                    legal, captions, nav and labels.
+     ------------------------------------------------------------ */
+  --font-sans: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+
+  /* Weights */
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-bold:    700;
+  --fw-black:   900;
+
+  /* Tracking */
+  --tracking-tightest: -0.04em;
+  --tracking-tighter:  -0.02em;
+  --tracking-tight:    -0.01em;
+  --tracking-normal:    0;
+  --tracking-wide:      0.05em;
+  --tracking-wider:     0.1em;
+  --tracking-widest:    0.2em;
+  --tracking-ultra:     0.3em;  /* chips, footer labels */
+  --tracking-mega:      0.5em;  /* section eyebrows */
+  --tracking-hyper:     0.6em;  /* tiny legal / meta */
+
+  /* Sizes — display (italic, uppercase, black) */
+  --fs-hero:     clamp(3.5rem, 10vw, 10rem);   /* 56–160 */
+  --fs-display:  clamp(2.5rem, 5vw, 4rem);     /* 40–64 */
+  --fs-h1:       2.25rem;  /* 36 */
+  --fs-h2:       1.5rem;   /* 24 */
+  --fs-h3:       1.125rem; /* 18 */
+
+  /* Sizes — body */
+  --fs-body:     0.875rem;   /* 14 — default body in mono/sans */
+  --fs-body-lg:  1rem;       /* 16 */
+  --fs-body-sm:  0.75rem;    /* 12 */
+
+  /* Sizes — meta / chips / eyebrows */
+  --fs-eyebrow:   0.625rem;  /* 10 */
+  --fs-caption:   0.5625rem; /* 9  — most UI labels */
+  --fs-micro:     0.5rem;    /* 8  — footer legal */
+
+  /* Line heights */
+  --lh-display: 0.8;
+  --lh-tight:   1.1;
+  --lh-normal:  1.5;
+  --lh-loose:   1.8;
+
+  /* ------------------------------------------------------------
+     SPACING / RADII
+     Corners are intentionally NOT rounded — this is a terminal
+     brand. Only the sealed "logo-sello" is a full circle.
+     ------------------------------------------------------------ */
+  --radius-none: 0;
+  --radius-xs:   2px;   /* rounded-sm in Tailwind */
+  --radius-sm:   4px;
+  --radius-md:   8px;   /* cards in dashboard/academy */
+  --radius-lg:   12px;  /* xl — dashboard panels */
+  --radius-full: 9999px;
+
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-std:  cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast:   150ms;
+  --dur-base:   300ms;
+  --dur-slow:   500ms;
+  --dur-xslow:  700ms;
+}
+
+/* ============================================================
+   SEMANTIC TYPE CLASSES
+   Use these directly; they encode the brand's voice — italic,
+   black, uppercase display + wide-tracked mono meta.
+   ============================================================ */
+
+html, body {
+  background: var(--bg-void);
+  color: var(--fg-2);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--emerald-500); color: #000; }
+
+/* Hero — the "DOMINA EL ALGORITMO" treatment */
+.t-hero {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-black);
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: var(--fs-hero);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tracking-tightest);
+  color: var(--fg-1);
+}
+
+/* Display — section toppers like "Quant Research Division" */
+.t-display {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-black);
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: var(--fs-display);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tighter);
+  color: var(--fg-1);
+}
+
+/* H1/H2/H3 */
+.t-h1 {
+  font-weight: var(--fw-black);
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: var(--fs-h1);
+  letter-spacing: var(--tracking-tighter);
+  color: var(--fg-1);
+}
+.t-h2 {
+  font-weight: var(--fw-black);
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: var(--fs-h2);
+  letter-spacing: var(--tracking-widest);
+  color: var(--fg-1);
+}
+.t-h3 {
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  font-size: var(--fs-h3);
+  letter-spacing: var(--tracking-wide);
+  color: var(--fg-1);
+}
+
+/* Eyebrow — tiny chip label, section opener */
+.t-eyebrow {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-black);
+  text-transform: uppercase;
+  font-size: var(--fs-caption);
+  letter-spacing: var(--tracking-mega);
+  color: var(--emerald-500);
+  font-style: italic;
+}
+
+/* Meta — labels, nav items, plan feature bullets */
+.t-meta {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--tracking-widest);
+  color: var(--fg-5);
+}
+
+/* Mono — copy that wants to feel like terminal output */
+.t-mono {
+  font-family: var(--font-mono);
+  font-weight: var(--fw-regular);
+  text-transform: uppercase;
+  font-size: var(--fs-body-sm);
+  letter-spacing: var(--tracking-ultra);
+  color: var(--fg-4);
+  line-height: var(--lh-loose);
+}
+
+/* Body default */
+.t-body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  color: var(--fg-4);
+}
+
+/* Legal / footer micro-print */
+.t-legal {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-black);
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tracking-hyper);
+  color: var(--fg-7);
+  line-height: var(--lh-loose);
+}
+
+/* Price — oversized numeric in cards */
+.t-price {
+  font-weight: var(--fw-black);
+  font-style: italic;
+  color: var(--fg-1);
+  font-size: 3rem;
+  letter-spacing: var(--tracking-tighter);
+  line-height: 1;
+}
+
+/* Accent — emerald highlight within a heading */
+.t-accent { color: var(--emerald-500); }
+.t-accent-glow {
+  color: var(--emerald-500);
+  text-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+}
+
+/* Emerald → dark emerald gradient (hero "Algoritmo") */
+.t-gradient-emerald {
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-image: linear-gradient(
+    to bottom,
+    var(--emerald-400) 0%,
+    var(--emerald-900) 100%
+  );
+  filter: drop-shadow(0 0 45px rgba(16, 185, 129, 0.4));
+}

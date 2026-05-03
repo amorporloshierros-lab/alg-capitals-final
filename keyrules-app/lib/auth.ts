@@ -42,8 +42,4 @@ export function canAccess(userPlan: PlanTier | null, expiresAt: string | null, m
   if (!userPlan) return false
   const now = Date.now()
   if (expiresAt && new Date(expiresAt).getTime() < now) return false
-  const level: Record<PlanTier, number> = { starter: 1, pro: 2, elite: 3 }
-  return level[userPlan] >= level[minPlan]
-}
-
-export type { UserRole, PlanTier }
+  const level: Record<PlanTier, number> = { 

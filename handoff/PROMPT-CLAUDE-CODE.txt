@@ -1,0 +1,144 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PROMPT PARA CLAUDE CODE — KeyRules × ALG Capitals
+Pegar TAL CUAL como primer mensaje en Claude Code, una vez
+que tengas el repo abierto con todo el paquete de handoff.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Hola Claude. Soy Lucas Tripodoro, founder de KeyRules × ALG Capitals (también "Quantz"): una plataforma de educación + señales de trading cuántico institucional. Tengo un prototipo HTML completamente diseñado y necesito que lo conviertas en una app funcional.
+
+═══════════════════════════════════════════════════════════════
+TU TAREA
+═══════════════════════════════════════════════════════════════
+
+Construir la versión FUNCIONAL del proyecto, con stack:
+
+  • Next.js 15 (App Router) + TypeScript
+  • Tailwind CSS + CSS variables de colors_and_type.css
+  • Supabase (Postgres + Auth + Storage + RLS)
+  • MercadoPago + Stripe (pagos) con webhooks
+  • Mux (video hosting con signed URLs)
+  • Resend (emails transaccionales)
+  • Deploy: Vercel
+
+═══════════════════════════════════════════════════════════════
+ANTES DE EMPEZAR — LEER OBLIGATORIO
+═══════════════════════════════════════════════════════════════
+
+1. Leé `CLAUDE.md` (raíz del repo) — contexto del negocio, paleta,
+   tipografía, reglas intocables de diseño.
+
+2. Leé `HANDOFF.md` — schema de DB, estructura de carpetas
+   sugerida, integraciones, checklist completo.
+
+3. Leé el contenido de `prototype-reference/`:
+   • marketing/CoinIntro.jsx        — intro cinemática (moneda + matrix rain)
+   • marketing/Chrome.jsx           — navbar, LiveChart ECG, banner Meet, ChatBot vela
+   • marketing/Landing.jsx          — Hero, Plans, Terminal, Footer
+   • marketing/Screens.jsx          — Certificados, ADN, Auditoría
+   • dashboard/*.jsx                — Portal Alumnos (mockup con data simulada)
+   • admin/AdminDashboard.jsx       — Panel admin (mockup visual de TODAS las pantallas)
+   • marketing/index.html           — orchestration y transiciones
+
+4. Leé `colors_and_type.css` — tokens. Tienen que pasar 1:1 a
+   Tailwind config (extender theme.colors, fontFamily, spacing).
+
+═══════════════════════════════════════════════════════════════
+QUÉ CONSTRUIR — RESUMEN
+═══════════════════════════════════════════════════════════════
+
+▸ LANDING PÚBLICA (/)
+  Conservá EXACTAMENTE las animaciones del prototipo:
+   - Intro de moneda con fondo Matrix de 0s y 1s (skip por sessionStorage)
+   - Navbar con logo que rota con el scroll
+   - Hero con LiveChart ECG (random walk realista)
+   - Banner "Próximo Meet" con countdown — leído desde tabla `meet_config`
+     en Supabase, NO hardcoded
+   - ChatBot vela japonesa que reacciona al scroll (bullish → doji → bearish)
+   - Plans, Terminal Panel, Footer
+   - Scroll reveals BIDIRECCIONALES (entran al scrollear abajo, salen al subir)
+   - Transiciones cinemáticas (fade + wipe esmeralda) entre páginas
+
+▸ AUTH (/login, /signup, /forgot)
+  Supabase Auth, email + password. Opcional Google OAuth.
+
+▸ PORTAL ALUMNOS (/portal/*)
+  Protegido por middleware. Reemplazá la data simulada del prototipo con
+  queries reales a Supabase. Componentes principales:
+   - Equity curve (calculada desde journal_trades del usuario)
+   - Bias del día (de tabla bias, filtrado por plan del user)
+   - Journal de trades (CRUD propio)
+   - Academia (clases con Mux signed playback)
+   - Signals feed (filtrado por plan)
+   - Challenge tracker, Risk panel, Licenses
+
+▸ PANEL ADMIN (/admin/*)
+  Solo accesible si profiles.role = 'admin'. Replicá EXACTAMENTE el
+  mockup visual de prototype-reference/admin/AdminDashboard.jsx.
+  Cada sección tiene que estar conectada a la DB:
+   - Overview         → métricas reales (count alumnos, MRR, etc)
+   - Próximo Meet     → CRUD sobre meet_config (con vista previa en vivo)
+   - Bias Diario      → CRUD sobre bias + upload de video opcional
+   - Clases & Replays → upload directo a Mux + metadata en classes
+   - Señales          → CRUD sobre signals
+   - Certificados     → drag&drop a Storage bucket "certificates"
+   - Testimonios      → drag&drop a Storage bucket "reviews"
+   - Alumnos          → tabla de profiles, edit plan/expiración
+   - Pagos            → tabla de payments con filtros
+   - Planes           → editor de precios y features
+
+▸ WEBHOOKS (/api/webhooks/*)
+  - mercadopago → al recibir payment.created/approved, upsert payments,
+    actualizar profiles.plan y plan_expires_at, mandar email confirmación
+  - stripe       → idem con eventos checkout.session.completed
+  - mux/sign     → endpoint que firma playback URLs validando plan del user
+
+═══════════════════════════════════════════════════════════════
+REGLAS DE DISEÑO INTOCABLES
+═══════════════════════════════════════════════════════════════
+
+1. NO cambiar la paleta (#050505 fondo + #10b981 esmeralda).
+2. NO cambiar fuentes (Geist + Geist Mono).
+3. NO redondear corners más de 2px en componentes principales.
+4. NO usar emoji en la UI (sí símbolos geométricos: ◉ ◇ ▲ ▼ ● ◎ ✦ ✧).
+5. NO meter filler content. Vacío = problema de layout, no de copy.
+6. CONSERVAR la intro de moneda + matrix rain (es signature de marca).
+7. CONSERVAR la vela del chatbot reactiva al scroll.
+8. CONSERVAR scroll reveals bidireccionales y transiciones cinemáticas.
+
+Tomá los .jsx del prototipo como FUENTE DE VERDAD del diseño.
+Portálos a TSX/Next.js sin perder colores, animaciones, ni timing.
+
+═══════════════════════════════════════════════════════════════
+PRIMERA RESPUESTA QUE ESPERO DE VOS
+═══════════════════════════════════════════════════════════════
+
+1. Confirmá que leíste CLAUDE.md, HANDOFF.md, y al menos 3 .jsx
+   del prototype-reference (decime cuáles).
+
+2. Mostrame tu plan de ejecución dividido en milestones:
+   M1: setup (Next + Supabase + Tailwind + tokens)
+   M2: schema DB + RLS
+   M3: landing pública
+   M4: auth + portal alumnos
+   M5: panel admin
+   M6: pagos + Mux + emails
+   M7: deploy
+
+3. Antes de cada milestone, listá los archivos exactos que vas a
+   crear/modificar. NO escribas código todavía — esperá mi OK.
+
+4. Si tenés duda en algún punto, preguntá ANTES de asumir.
+   Especialmente sobre:
+   - claves API (te las paso cuando arranques cada integración)
+   - dominios (Vercel default vs custom)
+   - precios exactos de los planes
+   - URL final del backend del chatbot de trading
+
+═══════════════════════════════════════════════════════════════
+TONE
+═══════════════════════════════════════════════════════════════
+
+Hablame en español rioplatense (vos, tutéo argentino). Sin emojis
+en respuestas técnicas. Directo, sin floja.
+
+Empezá leyendo los archivos y devolveme el plan.
