@@ -30,6 +30,7 @@ interface Props {
   signals: Signal[]; academyPct: number; completedClasses: number; totalClasses: number
   licenses?: License[]
   realStats?: { total: number; winRate: number; pnlPct: number; equity: number[] } | null
+  email?: string
 }
 
 // ── INIT TICKS ─────────────────────────────────────────────────────────────
@@ -103,9 +104,12 @@ function Stat({ label, value, prefix='', suffix='', color='#f5f5f5', big=false }
   )
 }
 
+import MT5Connector from './components/mt5-connector'
+
 // ── MAIN ──────────────────────────────────────────────────────────────────
-export default function CockpitClient({ userName, userInitials, plan, isAdmin=false, stats, trades, todayBias, nextMeet, signals, academyPct, completedClasses, totalClasses, licenses=[], realStats }: Props) {
+export default function CockpitClient({ userName, userInitials, plan, isAdmin=false, stats, trades, todayBias, nextMeet, signals, academyPct, completedClasses, totalClasses, licenses=[], realStats, email='' }: Props) {
   const router = useRouter()
+  const [showMt5, setShowMt5] = useState(false)
   const [time, setTime] = useState(new Date())
   const [ticks, setTicks] = useState(INIT_TICKS)
   const [equity, setEquity] = useState<number[]>(() => realStats?.equity?.length ? realStats.equity : genEquity())
@@ -292,7 +296,17 @@ export default function CockpitClient({ userName, userInitials, plan, isAdmin=fa
         <div>
           {/* EQUITY */}
           <Panel eyebrow="Master Account · $100K" title="Equity Curve · Live" glow
-            action={<Pill status="live">Streaming · Oracle MT5</Pill>}>
+            action={
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {realStats?.equity?.length ? (
+                  <Pill status="live">Streaming · Oracle MT5</Pill>
+                ) : (
+                  <button onClick={() => setShowMt5(true)} style={{ background: 'transparent', border: '1px dashed #10b981', color: '#10b981', font: '900 italic 8px/1 var(--font-sans)', letterSpacing: '.15em', textTransform: 'uppercase', padding: '4px 10px', cursor: 'pointer' }}>
+                    + Conectar Cuenta
+                  </button>
+                )}
+              </div>
+            }>
             <div style={{ display:'flex', gap:20, marginBottom:14, flexWrap:'wrap' }}>
               <Stat label="Balance actual" value={Math.round(bal).toLocaleString('en-US')} prefix="$" color="#10b981" big/>
               <Stat label="P&L Total" value={`${pnlPctEq>=0?'+':''}${pnlPctEq.toFixed(2)}`} suffix="%" color={pnlPctEq>=0?'#fff':'#ef4444'}/>
@@ -625,6 +639,7 @@ export default function CockpitClient({ userName, userInitials, plan, isAdmin=fa
         </div>
       </div>
 
+      {showMt5 && <MT5Connector email={email} onClose={() => setShowMt5(false)} />}
       <style>{`
         @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
         input[type=number]::-webkit-outer-spin-button,

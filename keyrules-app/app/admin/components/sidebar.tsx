@@ -9,10 +9,11 @@ const SECTIONS = [
   { href: '/admin/signals',   label: 'Señales',         icon: '◆' },
   { href: '/admin/meet',      label: 'Próximo Meet',    icon: '◎' },
   { href: '/admin/classes',   label: 'Clases & Replays',icon: '▶' },
-  { href: '/admin/students',  label: 'Alumnos',         icon: '●' },
-  { href: '/admin/licenses',  label: 'Licencias Oracle',icon: '⬢' },
-  { href: '/admin/payments',  label: 'Pagos',           icon: '$' },
-  { href: '/admin/plans',     label: 'Planes',          icon: '◇' },
+  { href: '/admin/students',  label: 'Alumnos / Cuentas', icon: '⬡' },
+  { href: '/admin/licenses',  label: 'Licencias / API', icon: '⎘' },
+  { href: '/admin/payments',  label: 'Pagos / Mux', icon: '◆' },
+  { href: '/admin/plans',     label: 'Suscripciones', icon: '◇' },
+  { href: '/admin/ai',        label: 'Cerebro AI (Lucas)', icon: '🤖' },
 ]
 
 export default function AdminSidebar() {
