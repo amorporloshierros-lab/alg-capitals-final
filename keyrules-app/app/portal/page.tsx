@@ -66,6 +66,7 @@ export default async function PortalPage() {
       completedClasses={completedClasses}
       totalClasses={totalClasses}
       licenses={(licenses ?? []) as { id: string; product: string; license_key: string; notes: string | null; expires_at: string | null }[]}
+      realStats={(profile as any).trading_stats}
     />
   )
 }

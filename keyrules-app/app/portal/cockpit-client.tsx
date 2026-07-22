@@ -29,6 +29,7 @@ interface Props {
   trades: Trade[]; todayBias: Bias|null; nextMeet: Meet|null
   signals: Signal[]; academyPct: number; completedClasses: number; totalClasses: number
   licenses?: License[]
+  realStats?: { total: number; winRate: number; pnlPct: number; equity: number[] } | null
 }
 
 // ── INIT TICKS ─────────────────────────────────────────────────────────────
@@ -103,11 +104,11 @@ function Stat({ label, value, prefix='', suffix='', color='#f5f5f5', big=false }
 }
 
 // ── MAIN ──────────────────────────────────────────────────────────────────
-export default function CockpitClient({ userName, userInitials, plan, isAdmin=false, stats, trades, todayBias, nextMeet, signals, academyPct, completedClasses, totalClasses, licenses=[] }: Props) {
+export default function CockpitClient({ userName, userInitials, plan, isAdmin=false, stats, trades, todayBias, nextMeet, signals, academyPct, completedClasses, totalClasses, licenses=[], realStats }: Props) {
   const router = useRouter()
   const [time, setTime] = useState(new Date())
   const [ticks, setTicks] = useState(INIT_TICKS)
-  const [equity, setEquity] = useState<number[]>(() => genEquity())
+  const [equity, setEquity] = useState<number[]>(() => realStats?.equity?.length ? realStats.equity : genEquity())
   const [countdown, setCountdown] = useState('')
   const [risk, setRisk] = useState({ balance:100000, riskPct:0.5, stop:42, rr:3 })
   const [refreshing, setRefreshing] = useState(false)
@@ -144,6 +145,7 @@ export default function CockpitClient({ userName, userInitials, plan, isAdmin=fa
 
   // ── Equity animation ──────────────────────────────────────────────────
   useEffect(() => {
+    if (realStats?.equity?.length) return // No animar si hay datos reales
     const t = setInterval(() => {
       setEquity(prev => {
         const last = prev[prev.length-1]
@@ -151,7 +153,7 @@ export default function CockpitClient({ userName, userInitials, plan, isAdmin=fa
       })
     }, 2400)
     return () => clearInterval(t)
-  }, [])
+  }, [realStats])
 
   // ── Meet countdown ────────────────────────────────────────────────────
   const updateCountdown = useCallback(() => {
@@ -281,8 +283,8 @@ export default function CockpitClient({ userName, userInitials, plan, isAdmin=fa
               <Stat label="P&L Total" value={`${pnlPctEq>=0?'+':''}${pnlPctEq.toFixed(2)}`} suffix="%" color={pnlPctEq>=0?'#fff':'#ef4444'}/>
               <Stat label="Max Drawdown" value={Math.abs(dd).toFixed(2)} suffix="%" color="#f59e0b"/>
               <Stat label="Profit Factor" value="2.84" color="#34d399"/>
-              <Stat label="Win Rate" value={String(stats.winRate||68)} suffix="%"/>
-              <Stat label="Trades" value={String(stats.total||247)}/>
+              <Stat label="Win Rate" value={String(realStats ? realStats.winRate : (stats.winRate||68))} suffix="%"/>
+              <Stat label="Trades" value={String(realStats ? realStats.total : (stats.total||247))}/>
             </div>
             <div style={{ position:'relative', height:160, background:'rgba(0,0,0,.4)', border:'1px solid #171717', padding:10 }}>
               <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width:'100%', height:'100%', display:'block' }}>
