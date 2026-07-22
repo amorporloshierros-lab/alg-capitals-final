@@ -120,6 +120,8 @@ export interface Database {
           min_plan: PlanTier
           status: SignalStatus
           posted_at: string
+          notes: string | null
+          rr: number | null
         }
         Insert: {
           id?: string
@@ -132,6 +134,8 @@ export interface Database {
           min_plan?: PlanTier
           status?: SignalStatus
           posted_at?: string
+          notes?: string | null
+          rr?: number | null
         }
         Update: {
           pair?: string
@@ -142,6 +146,8 @@ export interface Database {
           timeframe?: string | null
           min_plan?: PlanTier
           status?: SignalStatus
+          notes?: string | null
+          rr?: number | null
         }
       }
       media_items: {
@@ -276,6 +282,36 @@ export interface Database {
         }
         Update: {
           completed_at?: string | null
+        }
+      }
+      licenses: {
+        Row: {
+          id: string
+          user_id: string
+          product: string
+          license_key: string
+          notes: string | null
+          expires_at: string | null
+          active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          product: string
+          license_key?: string
+          notes?: string | null
+          expires_at?: string | null
+          active?: boolean
+          created_at?: string
+        }
+        Update: {
+          user_id?: string
+          product?: string
+          license_key?: string
+          notes?: string | null
+          expires_at?: string | null
+          active?: boolean
         }
       }
     }

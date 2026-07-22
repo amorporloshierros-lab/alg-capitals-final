@@ -20,7 +20,7 @@ export default async function PortalPage() {
     supabase.from('journal_trades').select('result_pct, taken_at, pair, direction, notes').eq('user_id', profile.id).order('taken_at', { ascending: false }).limit(10),
     supabase.from('bias').select('*').not('published_at', 'is', null).order('published_at', { ascending: false }).limit(1),
     supabase.from('meet_config').select('*').eq('active', true).limit(1),
-    supabase.from('signals').select('*').in('status', ['active', 'open']).order('posted_at', { ascending: false }).limit(5),
+    supabase.from('signals').select('*').eq('status', 'active').order('posted_at', { ascending: false }).limit(5),
     supabase.from('class_progress').select('class_id').eq('user_id', profile.id),
     supabase.from('classes').select('id, module').not('published_at', 'is', null),
     supabase.from('licenses').select('*').eq('user_id', profile.id).eq('active', true),

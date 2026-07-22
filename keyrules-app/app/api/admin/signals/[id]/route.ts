@@ -8,7 +8,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { id } = await params
     const body = await req.json()
     const supabase = createAdminClient()
-    const { error } = await supabase.from('signals').update(body).eq('id', id)
+
+    const allowed: Record<string, unknown> = {}
+    const fields = ['pair', 'direction', 'entry', 'sl', 'tp', 'timeframe', 'min_plan', 'status', 'notes', 'rr'] as const
+    for (const key of fields) {
+      if (body[key] !== undefined) allowed[key] = body[key]
+    }
+
+    const { error } = await supabase.from('signals').update(allowed).eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 400 })
     return NextResponse.json({ ok: true })
   } catch {

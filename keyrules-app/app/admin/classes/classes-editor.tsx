@@ -67,12 +67,17 @@ export default function ClassesEditor({ initialList }: { initialList: Class[] })
   async function handleToggle(c: Class) {
     const published_at = c.published_at ? null : new Date().toISOString()
     startTransition(async () => {
-      await fetch(`/api/admin/classes/${c.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ published_at }),
-      })
-      setList(prev => prev.map(x => x.id === c.id ? {...x, published_at} : x))
+      try {
+        const res = await fetch(`/api/admin/classes/${c.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ published_at }),
+        })
+        if (!res.ok) throw new Error('Error al actualizar')
+        setList(prev => prev.map(x => x.id === c.id ? {...x, published_at} : x))
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Error al actualizar')
+      }
     })
   }
 
