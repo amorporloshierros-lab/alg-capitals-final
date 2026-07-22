@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Keys missing' }, { status: 400 })
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: '2025-01-27.acacia' })
+    const stripe = new Stripe(stripeKey, { apiVersion: '2026-06-24.dahlia' as any })
     const signature = req.headers.get('stripe-signature')
     const bodyText = await req.text()
 
