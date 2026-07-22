@@ -13,6 +13,7 @@ const SECTIONS = [
   { href: '/admin/licenses',  label: 'Licencias / API', icon: '⎘' },
   { href: '/admin/payments',  label: 'Pagos / Mux', icon: '◆' },
   { href: '/admin/plans',     label: 'Suscripciones', icon: '◇' },
+  { href: '/admin/media',     label: 'Media (Reviews)', icon: '✦' },
   { href: '/admin/ai',        label: 'Cerebro AI (Lucas)', icon: '🤖' },
 ]
 

@@ -19,9 +19,7 @@ export async function POST(req: NextRequest) {
       min_plan:  body.min_plan ?? 'starter',
     }
     // Optional columns — include only if provided
-    if (body.notes     !== undefined) payload.notes     = body.notes
     if (body.timeframe !== undefined) payload.timeframe = body.timeframe
-    if (body.rr        !== undefined) payload.rr        = body.rr
 
     const { data, error } = await supabase.from('signals').insert(payload).select().single()
     if (error) return NextResponse.json({ error: error.message }, { status: 400 })
