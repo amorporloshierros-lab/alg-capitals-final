@@ -130,16 +130,31 @@ export default function CockpitClient({ userName, userInitials, plan, isAdmin=fa
     return () => clearInterval(t)
   }, [])
 
-  // ── Ticker drift ──────────────────────────────────────────────────────
+  // ── Live Ticker (Binance API para Crypto & Stable-Forex) ───────────────
   useEffect(() => {
-    const t = setInterval(() => {
-      setTicks(prev => prev.map(tk => {
-        const v = tk.price*.0006
-        const np = +(tk.price+(Math.random()-.5)*v*2).toFixed(tk.price<10?5:2)
-        const nd = +(tk.delta+(Math.random()-.5)*.06).toFixed(2)
-        return {...tk, price:np, delta:nd}
-      }))
-    }, 1800)
+    const fetchTicker = async () => {
+      try {
+        const res = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=%5B%22BTCUSDT%22,%22ETHUSDT%22,%22SOLUSDT%22,%22EURUSDT%22,%22GBPUSDT%22,%22AUDUSDT%22%5D')
+        const data = await res.json()
+        if (Array.isArray(data)) {
+          const newTicks = data.map((d: any) => {
+            const price = parseFloat(d.lastPrice)
+            const delta = parseFloat(d.priceChangePercent)
+            return {
+              symbol: d.symbol.replace('USDT', '/USD'),
+              price,
+              delta,
+              bias: delta > 0.5 ? 'BULL' : delta < -0.5 ? 'BEAR' : 'NEUTRAL'
+            }
+          })
+          setTicks(newTicks)
+        }
+      } catch (e) {
+        // Silencioso en caso de error de red, mantiene los ticks iniciales
+      }
+    }
+    fetchTicker()
+    const t = setInterval(fetchTicker, 15000) // Actualizar cada 15 segundos
     return () => clearInterval(t)
   }, [])
 
